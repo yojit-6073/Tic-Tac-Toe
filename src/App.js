@@ -8,9 +8,56 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-export default function Board() {
-  const [squares, setSquares] = useState(Array(9).fill(null));
-  const [XTurn, setXTurn] = useState(true);
+export default function Game(){
+
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [currentMove, setCurrentMove] = useState(0);
+  const currentSquares = history[currentMove];
+  const XTurn = (currentMove % 2 == 0);
+
+  function handlePlay(nextSquares){
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares]
+    setHistory(nextHistory);
+    const newCurrentMove = nextHistory.length - 1;
+    setCurrentMove(newCurrentMove);
+  }
+
+  function jumpTo(move){
+    setCurrentMove(move);
+  }
+  
+  const moves = history.map((squares,move)=>{
+    let description;
+    if(move > 0){
+      description = `Go back to ${move}`
+    }
+    else{
+      description = "Go to Game Start";
+    }
+    return(
+      <li key = {move}>
+        <button onClick = {()=>jumpTo(move)}>{description}</button>
+      </li>
+    );
+
+  })
+
+  return(
+    <div className="game">
+      <div className="game-board">
+        <Board XTurn = {XTurn} squares = {currentSquares} onPlay = {handlePlay}/>
+      </div>
+      <div className="game-info">
+        <ol>{moves}</ol>
+      </div>
+    </div>
+  );
+
+}
+
+function Board({XTurn, squares, onPlay}) {
+  // const [squares, setSquares] = useState(Array(9).fill(null));
+  // const [XTurn, setXTurn] = useState(true);
   const [status, setStatus] = useState("Next Turn: X");
 
   function calculateWinner(squares) {
@@ -44,14 +91,15 @@ export default function Board() {
     }
     const newSquares = squares.slice();
     newSquares[i] = XTurn ? "X" : "O";
-    setSquares(newSquares);
+    onPlay(newSquares);
+    // setSquares(newSquares);
     const winner = calculateWinner(newSquares);
     if (winner) {
       setStatus("Winner is " + winner);
     } else {
       setStatus("Next Turn: " + (XTurn ? "X" : "O"));
     }
-    setXTurn(!XTurn);
+    // setXTurn(!XTurn);
   }
 
   return (
